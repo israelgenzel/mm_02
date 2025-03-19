@@ -1,0 +1,25 @@
+{
+  "name": "test-ts-node-project",
+  "version": "1.0.0",
+  "description": "TypeScript project with ts-node.",
+  "main": "index.ts",
+  "type": "module",
+  "scripts": {
+    "start": "ts-node ./index.ts"
+  },
+  "license": "ISC",
+  "dependencies": {
+    "@types/express": "^5.0.0",
+    "dotenv": "^16.4.7",
+    "express": "^4.21.2",
+    "express-serve-static-core": "^0.1.1",
+    "israeli-bank-scrapers": "^5.4.2",
+    "pg": "^8.14.1",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.8.2"
+  },
+  "devDependencies": {
+    "@types/pg": "^8.11.11",
+    "tsx": "^4.19.3"
+  }
+}

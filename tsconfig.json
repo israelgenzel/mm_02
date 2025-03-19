@@ -1,0 +1,14 @@
+{
+    "compilerOptions": {
+      "moduleResolution": "node",
+    "module": "CommonJS",
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "strict": false,
+    "allowImportingTsExtensions": true,
+    "noEmit": true
+        
+            
+    },
+
+}
