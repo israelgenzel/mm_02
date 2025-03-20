@@ -2,7 +2,7 @@ import express from 'express';
 import { Request, Response } from 'express-serve-static-core';
 import { scrape } from './scraper.ts';
 import { insertNewTransactions } from './db_api.ts';
-import { CompanyTypes } from 'israeli-bank-scrapers';
+import { CompanyTypes ,ScraperScrapingResult} from 'israeli-bank-scrapers';
 
 const app = express();
 const port = 3000;
@@ -35,3 +35,11 @@ app.get('/scrape', async (req: Request, res: Response) => {
 app.listen(port, () => {
   console.log(`Server running at http://localhost:${port}`);
 });
+
+
+
+// just for testing
+import data  from './data_for_dev.json'
+const rs = data as ScraperScrapingResult;
+const status = await insertNewTransactions(rs);
+console.log(status)

@@ -1,12 +1,15 @@
 {
     "compilerOptions": {
       "moduleResolution": "node",
-    "module": "CommonJS",
+    "module": "ESNext",
     "esModuleInterop": true,
     "skipLibCheck": true,
     "strict": false,
     "allowImportingTsExtensions": true,
-    "noEmit": true
+    "noEmit": true,
+    "target": "ESNext",
+    "resolveJsonModule": true,
+    
         
             
     },
