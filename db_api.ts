@@ -65,40 +65,51 @@ function getColumns<T extends TableName>(
 
 
 
-async function insertIntoTable(
-  client: PoolClient, // עכשיו הפונקציה מקבלת client ולא יוצרת אחד חדש
-  tableName: string,
+async function insertIntoTable<T extends TableName>(
+  client: PoolClient,
+  table: T,
   values: (string | number | null)[][],
-): Promise<{ status: string, rowCount?: number, error?: string }> {
+  selectedColumns?: (typeof TablesColumns[T][number])[],
+  excludedColumns?: (typeof TablesColumns[T][number])[]
+): Promise<{ status: string; rowCount?: number; error?: string }> {
   if (values.length === 0) {
-    return { status: "failure", error: "No values to insert." }; // אם אין ערכים להוסיף
+    return { status: "failure", error: "No values to insert." }; // אין ערכים להוספה
   }
 
-  const columns = getColumns(tableName as TableName,undefined ,["id"]); // קבלת העמודות המותרות להכנסה
+  // קבלת עמודות חוקיות להכנסה
+  const columns = getColumns(table, selectedColumns, excludedColumns ?? ["id"]);
+
+  if (columns.length === 0) {
+    return { status: "failure", error: "No valid columns to insert." }; // אם אין עמודות תקפות
+  }
+
+  // יצירת פלייסהולדרים (למניעת SQL Injection)
   const valuesPlaceholders = values
     .map((_, rowIndex) =>
       `(${columns.map((_, colIndex) => `$${rowIndex * columns.length + colIndex + 1}`).join(", ")})`
     )
     .join(", ");
 
+  // יצירת השאילתה
   const query = `
-      INSERT INTO ${tableName} (${columns.join(", ")})
+      INSERT INTO ${table} (${columns.join(", ")})
       VALUES ${valuesPlaceholders}
       ON CONFLICT DO NOTHING
       RETURNING *;
   `;
 
   const flatValues = values.flat();
-
+  console.log("Inserting into", table, "with", flatValues.length, "values by",query);
   try {
     const result = await client.query(query, flatValues);
-    console.log(`Inserted ${result.rowCount} records into ${tableName}`);
-    return { status: "success", rowCount: result.rowCount }; // החזרת סטטוס הצלחה עם מספר הרשומות שהוזנו
+    console.log(`Inserted ${result.rowCount} records into ${table}`);
+    return { status: "success", rowCount: result.rowCount }; // החזרת סטטוס הצלחה עם כמות רשומות שהוזנו
   } catch (error) {
-    console.error(`Error inserting into ${tableName}:`, error);
-    return { status: "failure", error: error.message }; // החזרת כישלון עם הודעת השגיאה
+    console.error(`Error inserting into ${table}:`, error);
+    return { status: "failure", error: (error as Error).message }; // החזרת כישלון עם הודעת השגיאה
   }
 }
+
 
 
 
@@ -117,7 +128,7 @@ async function insertNewTransactions(scrapeResult: ScraperScrapingResult): Promi
     await client.query('BEGIN'); // נתחיל טרנזקציה
 
     // יצירת מערכים להכנסת הנתונים לטבלאות
-    const pendingInserts: (string | number | null)[][] = [];
+    let pendingInserts: (string | number | null)[][] = [];
     let transactionsInserts: (string | number | null)[][] = [];
 
     // בדיקה שיש חשבונות בתוך התוצאה
@@ -126,7 +137,6 @@ async function insertNewTransactions(scrapeResult: ScraperScrapingResult): Promi
       return;
     }
 
-    // עבור כל חשבון ועבור כל עסקה בחשבון, הכנס את הנתונים למערכים
     for (const account of scrapeResult.accounts) {
       const { accountNumber } = account;
       for (const txn of account.txns) {
@@ -135,26 +145,34 @@ async function insertNewTransactions(scrapeResult: ScraperScrapingResult): Promi
           originalAmount, originalCurrency, chargedAmount,
           chargedCurrency, description, memo, category
         } = txn;
-
+    
+        let installmentNumber: string | null = null;
+        let installmentTotal: string | null = null;
+    
+        if (type === "installments" && memo) {
+          const match = memo.match(/(\d+)\sמתוך\s(\d+)/); // חילוץ מספר תשלום ומספר כולל
+          if (match) {
+            installmentNumber = match[1]; // מספר התשלום הנוכחי
+            installmentTotal = match[2]; // מספר התשלומים הכולל
+          }
+        }
+    
+        const record = [
+          identifier ?? null, accountNumber ?? null, type ?? null, status ?? null, date ?? null, processedDate ?? null,
+          originalAmount ?? null, originalCurrency ?? null, chargedAmount ?? null,
+          chargedCurrency ?? null, description ?? null, memo ?? null,installmentNumber, installmentTotal, category ?? null,
+           // ⬅️ הוספת מספרי התשלומים
+        ];
+    
         if (status === "pending") {
-          pendingInserts.push([
-            identifier ?? null, type ?? null, status ?? null, date ?? null, processedDate ?? null,
-            originalAmount ?? null, originalCurrency ?? null, chargedAmount ?? null,
-            chargedCurrency ?? null, description ?? null, memo ?? null, category ?? null,
-            accountNumber ?? null
-          ]);
+          pendingInserts.push(record);
         } else {
-          transactionsInserts.push([
-            identifier ?? null, type ?? null, status ?? null, date ?? null, processedDate ?? null,
-            originalAmount ?? null, originalCurrency ?? null, chargedAmount ?? null,
-            chargedCurrency ?? null, description ?? null, memo ?? null, category ?? null,
-            accountNumber ?? null
-          ]);
+          transactionsInserts.push(record);
         }
       }
     }
 
-    insertIntoTable(client, 'pending_trx', pendingInserts);
+    insertIntoTable( client, 'pending_trx', pendingInserts,undefined, ["id", "business_id", "manual_category_id"]);
 
    
 
@@ -184,9 +202,9 @@ async function insertNewTransactions(scrapeResult: ScraperScrapingResult): Promi
     
     transactionsInserts = transactionsInserts.map(t => {
         let identifier = String(t[0]); // מזהה העסקה
-        if (t[1] === "installments") { // אם זו עסקה בתשלומים
-            const memo = String(t[10]); // לדוגמה: "3 מתוך 3 - סכום העסקה ₪431.60"
-            const description = String(t[9]); // תיאור העסקה
+        if (t[2] === "installments") { // אם זו עסקה בתשלומים
+            const memo = String(t[11]); // לדוגמה: "3 מתוך 3 - סכום העסקה ₪431.60"
+            const description = String(t[10]); // תיאור העסקה
             const match = memo.match(/(\d+)\sמתוך\s(\d+)/); // חילוץ מספר תשלום ומספר כולל
             
             let currentInstallment = "?";
@@ -202,12 +220,14 @@ async function insertNewTransactions(scrapeResult: ScraperScrapingResult): Promi
             // יצירת מזהה ייחודי
             identifier = `${identifier}_${shortDesc}_i${currentInstallment}f${totalInstallments}`;
         }
+
+
     
         return [identifier, ...t.slice(1)]; // מחליף את ה-ID ושומר את כל השאר
     });
 
 
-    insertIntoTable(client, 'transactions',  transactionsInserts);
+    insertIntoTable(client, 'transactions',  transactionsInserts,undefined, ["id", "business_id", "manual_category_id"]);
       
     
     
@@ -220,8 +240,8 @@ async function insertNewTransactions(scrapeResult: ScraperScrapingResult): Promi
       //     $${i * 13 + 10}, $${i * 13 + 11}, $${i * 13 + 12}, $${i * 13 + 13})`).join(", ")}
       //   ON CONFLICT DO NOTHING RETURNING *`;
 
-      const categoryValues = transactionsInserts.map((t) => t[11]);
-      const businessValues = transactionsInserts.map((t) => t[9]);
+      const categoryValues = transactionsInserts.map((t) => t[14]);
+      const businessValues = transactionsInserts.map((t) => t[10]);
 
       const categoryQuery = `INSERT INTO categories (name) VALUES ${categoryValues.map((_, i) => `($${i + 1})`).join(", ")}
         ON CONFLICT DO NOTHING RETURNING *`;
@@ -292,12 +312,12 @@ async function insertNewTransactions(scrapeResult: ScraperScrapingResult): Promi
         RETURNING *`;
 
       const values = transactionsInserts.flatMap(txn => [
-        typeof txn[3] === "string"
-          ? txn[3].split("T")[0]  // אם זה string, חתוך את השעה
-          : new Date(txn[3]).toISOString().split("T")[0], // אם זה מספר, המר אותו לתאריך
-        txn[12], // account_number
-        txn[7],  // charge_amount (אינדקס 5 לדוגמה - ודא שזה האינדקס הנכון)
-        txn[9]   // description (אינדקס 8 לדוגמה - ודא שזה האינדקס הנכון)
+        typeof txn[4] === "string"
+          ? txn[4].split("T")[0]  // אם זה string, חתוך את השעה
+          : new Date(txn[4]).toISOString().split("T")[0], // אם זה מספר, המר אותו לתאריך
+        txn[1], // account_number
+        txn[8],  // charge_amount (אינדקס 5 לדוגמה - ודא שזה האינדקס הנכון)
+        txn[10]   // description (אינדקס 8 לדוגמה - ודא שזה האינדקס הנכון)
       ]);
 
       // console.log("Deleting from pending:", values);
