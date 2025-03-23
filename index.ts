@@ -42,4 +42,4 @@ app.listen(port, () => {
 import data  from './data_for_dev.json'
 const rs = data as ScraperScrapingResult;
 const status = await insertNewTransactions(rs);
-console.log(status)
+
