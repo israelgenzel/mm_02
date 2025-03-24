@@ -1,17 +1,31 @@
 
-import { CompanyTypes, createScraper, ScraperOptions, ScraperCredentials ,ScaperScrapingResult} from 'israeli-bank-scrapers';
+import { CompanyTypes, createScraper, ScraperOptions, ScraperCredentials ,ScaperScrapingResult } from 'israeli-bank-scrapers';
+
+import path from 'path';
+import fs from 'fs';
 import { credentials } from "./config.ts"; // נתיב הייבוא לפי המיקום של `config.ts`
+import { setTimeout } from 'timers/promises';
 async function scrape(companyId:CompanyTypes,startDate : Date): Promise<ScaperScrapingResult | undefined> {
   
   
   try {
+
+
+
     const options: ScraperOptions = {
       companyId: companyId,
       startDate: startDate,
       combineInstallments: false,
       showBrowser: true,
       verbose: true,
-      executablePath: "C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe"
+      //executablePath: "C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe",
+      //userDataDir: "C:\\Users\\Israel\\AppData\\Local\\Google\\Chrome\\User Data\\israel",
+     // coockiesPath: "./cookies.txt",
+      // headless: true,
+      storeFailureScreenShotPath: path.resolve("./", 'screenshots/failure.jpg'),
+       
+     
+      
     };
     const compeny = credentials.find((c) => c.name === companyId as string);
     if (!compeny) {
@@ -31,6 +45,7 @@ async function scrape(companyId:CompanyTypes,startDate : Date): Promise<ScaperSc
     // };
 
     const scraper = createScraper(options);
+   
     const scrapeResult: ScaperScrapingResult = await scraper.scrape(cred);
 
     if (scrapeResult.success) {

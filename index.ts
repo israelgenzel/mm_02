@@ -2,9 +2,10 @@ import express from 'express';
 import { Request, Response } from 'express-serve-static-core';
 import { scrape } from './scraper.ts';
 import { insertNewTransactions } from './db_api.ts';
-import { CompanyTypes} from 'israeli-bank-scrapers';
+import { CompanyTypes, ScraperScrapingResult} from 'israeli-bank-scrapers';
 import updateNotifier from 'update-notifier';
 import pkg from './package.json';
+import { main } from './scraper_cookies.ts';
 
 
 const app = express();
@@ -18,12 +19,12 @@ app.get('/', (req: Request, res: Response) => {
 app.get('/scrape', async (req: Request, res: Response) => {
   try {
     console.log('Scraping...');
-    const data = await scrape(CompanyTypes.visaCal,new Date('01-01-25')); // קריאה לפונקציה בסקריפט שלך
+    const data = await scrape(CompanyTypes.hapoalim,new Date('01-01-25')); // קריאה לפונקציה בסקריפט שלך
     console.log(data);
     console.log('json');
     
     if (data) {
-      await insertNewTransactions(data); // קריאה לפונקציה שמכניסה את הנתונים לבסיס הנתונים
+      // await insertNewTransactions(data); // קריאה לפונקציה שמכניסה את הנתונים לבסיס הנתונים
       res.json(data);
     } else {
       res.status(500).send('No data returned from scraping');
@@ -52,8 +53,11 @@ else {
     console.log('*update*    אין עדכונים זמינים');
 }
 
-// // just for testing
-// import data  from './data_for_dev.json'
+//main();
+// just for testing
+// import data  from './hapoalim_for_dev.json';
 // const rs = data as ScraperScrapingResult;
 // const status = await insertNewTransactions(rs);
+// const data = await scrape(CompanyTypes.hapoalim,new Date('01-01-25')); // קריאה לפונקציה בסקריפט שלך
+//     console.log(data);
 

@@ -4,7 +4,7 @@ import { pool } from './db.js';
 import { PoolClient } from 'pg';
 
 
-const client : PoolClient = await pool.connect();
+const client: PoolClient = await pool.connect();
 
 const TablesColumns = {
   accounts: ["id", "account_id", "compeny_name", "balance", "status", "descraption"] as const,
@@ -78,7 +78,7 @@ function getColumns<T extends TableName>(
 // פונקציה להכנסת נתונים לטבלה
 // הפונקציה מקבלת את הקליינט, שם הטבלה, ערכים להכנסה, עמודות נבחרות להכנסה ועמודות שלא יכנסו
 async function InsertRows<T extends TableName>(
-  
+
   table: T,
   values: Record<string, any>[], // ערכים בפורמט קי ואליו
   selectedColumns?: (typeof TablesColumns[T][number])[],
@@ -138,7 +138,7 @@ async function InsertRows<T extends TableName>(
 }
 
 async function DeleteRows<T extends TableName>(
-  
+
   table: T,
   values: Record<string, any>[], // ערכים בפורמט קי ואליו
   selectedColumns?: (typeof TablesColumns[T][number])[],
@@ -188,7 +188,7 @@ async function DeleteRows<T extends TableName>(
 }
 
 async function updateRows<T extends TableName>(
-  
+
   table: T,
   oldValues: Record<string, any>[], // ערכים בפורמט קי ואליו
   updateValues: Record<string, any>[], // ערכים בפורמט קי ואליו
@@ -264,11 +264,11 @@ async function updateRows<T extends TableName>(
   }
 }
 
-async function BEGIN (): Promise<void> {
+async function BEGIN(): Promise<void> {
   await client.query('BEGIN'); // נתחיל טרנזקציה
 }
 
-async function COMMIT (): Promise<void> {
+async function COMMIT(): Promise<void> {
   await client.query('COMMIT'); // שמירה ל-DB
 }
 
@@ -295,7 +295,7 @@ async function insertNewTransactions(scrapeResult: ScraperScrapingResult): Promi
     // המערכים יוכנסו לטבלאות במכה אחת
     let transactionRecords: Record<string, any>[] = [];
     let pendingRecords: Record<string, any>[] = [];
-    
+
 
     // עבור כל חשבון בתוך התוצאה  
     for (const account of scrapeResult.accounts) {
@@ -351,61 +351,50 @@ async function insertNewTransactions(scrapeResult: ScraperScrapingResult): Promi
       // הכנסת כל העסקאות לטבלה הראשית במכה אחת
       const transactions_result = (await InsertRows('transactions', transactionRecords, undefined, ["id", "businessId", "manualCategoryId"])).result.rows;
 
+
       // יצירת מערך קטגוריות ועסקים חדשים
       const categoryRecords = transactionRecords
-        .filter(t => t.category !== null)
+        .filter(t => t.category)
         .map(t => ({ name: t.category }));
       const businessRecords = transactionRecords
-        .filter(t => t.description !== null)
+        .filter(t => t.description)
         .map(t => ({ name: t.description }));
 
 
-      // הכנסת כל הקטגוריות והעסקים החדשים במכה אחת וקבלת התוצאות שנכנסו
-      const new_categorys = (await InsertRows('categories', categoryRecords, ["name"])).result;
-      const new_businesses = (await InsertRows('businesses', businessRecords, ["name"])).result;
-
       let new_categorys_notification: Record<string, any>[] = [];
       let new_businesses_notification: Record<string, any>[] = [];
-      const allNotifoctions: Record<string, any>[] =[];
+      const allNotifoctions: Record<string, any>[] = [];
 
-      if( new_categorys.rowCount > 0){
-        new_categorys_notification = [{
-          type: 'added_pending_values',
-          message: `Inserted ${new_categorys.rowCount} categorys, please check to approve or change.`,
-          created_at: new Date().toISOString(),
-          buttons: [({'go to categories': new_categorys.rows.map((c) => c.name)})],
-        }];
-        allNotifoctions.push(...new_categorys_notification);
-      }
-     
 
-      if( new_businesses.rowCount > 0){
-        new_businesses_notification = [{
-          type: 'added_pending_values',
-          message: `Inserted ${new_businesses.rowCount} businesses, please check to approve or change.`,
-          created_at: new Date().toISOString(),
-          buttons: [({'go to businesses': new_businesses.rows.map((b) => b.name)})],
-        }];
-        allNotifoctions.push(...new_businesses_notification);
+      if (categoryRecords.length > 0) {
+        const new_categorys = (await InsertRows('categories', categoryRecords, ["name"])).result;
+        if (new_categorys.rowCount > 0) {
+          new_categorys_notification = [{
+            type: 'added_pending_values',
+            message: `Inserted ${new_categorys.rowCount} categorys, please check to approve or change.`,
+            created_at: new Date().toISOString(),
+            buttons: [({ 'go to categories': new_categorys.rows.map((c) => c.name) })],
+          }];
+          allNotifoctions.push(...new_categorys_notification);
+        }
+
       }
 
+      if (businessRecords.length > 0) {
+        const new_businesses = (await InsertRows('businesses', businessRecords, ["name"])).result;
+        if (new_businesses.rowCount > 0) {
+          new_businesses_notification = [{
+            type: 'added_pending_values',
+            message: `Inserted ${new_businesses.rowCount} businesses, please check to approve or change.`,
+            created_at: new Date().toISOString(),
+            buttons: [({ 'go to businesses': new_businesses.rows.map((b) => b.name) })],
+          }];
+          allNotifoctions.push(...new_businesses_notification);
+        }
 
-      // // יצירת התראות עבור קטגוריות ועסקים חדשים
-      // const new_categorys_notifications: Record<string, any>[] = new_categorys.rows.map((c) => ({ // יצירת מערך חדש של התראות עבור קטגוריות חדשות
-      //   type: 'added_pending_value', // סוג ההתראה  - ערך קבוע
-      //   message: `Inserted category: ${c.name}, please check to approve or change`, // הודעת ההתראה - ערך קבוע
-      //   created_at: new Date().toISOString(), // תאריך יצירת ההתראה - ערך קבוע    
-      //   buttons: ['Approve', 'Change'], // כפתורים להתגובה - ערך קבוע
-      // }));
+        console.log("new_businesses_notification", new_businesses_notification);
+      }
 
-      // const new_businesses_notifications: Record<string, any>[] = new_businesses.rows.map((b) => ({
-      //   type: 'added_pending_value',
-      //   message: `Inserted business: ${b.name}, please check to approve or change`, // הודעת ההתראה
-      //   created_at: new Date().toISOString(), // תאריך יצירת ההתראה 
-      //   buttons: ['Approve', 'Change'], // כפתורים להתגובה
-      // }));
-
-      
 
       // הכנסת כל ההתראות לטבלת ההתראות במכה אחת
       InsertRows('notifications', allNotifoctions, undefined, ["id"]);
