@@ -5,7 +5,7 @@ import { insertNewTransactions } from './db_api.ts';
 import { CompanyTypes, ScraperScrapingResult} from 'israeli-bank-scrapers';
 import updateNotifier from 'update-notifier';
 import pkg from './package.json';
-import { main } from './scraper_cookies.ts';
+
 
 
 const app = express();
