@@ -2,7 +2,10 @@ import express from 'express';
 import { Request, Response } from 'express-serve-static-core';
 import { scrape } from './scraper.ts';
 import { insertNewTransactions } from './db_api.ts';
-import { CompanyTypes ,ScraperScrapingResult} from 'israeli-bank-scrapers';
+import { CompanyTypes} from 'israeli-bank-scrapers';
+import updateNotifier from 'update-notifier';
+import pkg from './package.json';
+
 
 const app = express();
 const port = 3000;
@@ -36,7 +39,18 @@ app.listen(port, () => {
   console.log(`Server running at http://localhost:${port}`);
 });
 
+// Check for updates
+updateNotifier({ pkg }).notify();
 
+const notifier = updateNotifier({ pkg });
+
+if (notifier.update) {
+    console.log(`*update*      ⚠️ יש עדכון זמין: ${notifier.update.latest}`);
+    console.log("עדכן עם: npm update או npm install -g <package>");
+}
+else {
+    console.log('*update*    אין עדכונים זמינים');
+}
 
 // // just for testing
 // import data  from './data_for_dev.json'
