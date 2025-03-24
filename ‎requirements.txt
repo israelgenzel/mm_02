@@ -1,0 +1,11 @@
+israeli-bank-scrapers
+tsx
+@types/express
+dotenv
+express
+express-serve-static-core
+pg
+ts-node
+typescript,
+update-notifier
+@types/pg
