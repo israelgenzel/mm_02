@@ -38,8 +38,8 @@ app.listen(port, () => {
 
 
 
-// just for testing
-import data  from './data_for_dev.json'
-const rs = data as ScraperScrapingResult;
-const status = await insertNewTransactions(rs);
+// // just for testing
+// import data  from './data_for_dev.json'
+// const rs = data as ScraperScrapingResult;
+// const status = await insertNewTransactions(rs);
 

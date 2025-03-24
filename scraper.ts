@@ -1,3 +1,4 @@
+
 import { CompanyTypes, createScraper, ScraperOptions, ScraperCredentials ,ScaperScrapingResult} from 'israeli-bank-scrapers';
 import { credentials } from "./config.ts"; // נתיב הייבוא לפי המיקום של `config.ts`
 async function scrape(companyId:CompanyTypes,startDate : Date): Promise<ScaperScrapingResult | undefined> {
