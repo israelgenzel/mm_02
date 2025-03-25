@@ -1,5 +1,9 @@
-const { pool } = require('./db');
-const client = await pool.connect();
+const { pool } = require('./db.js');
+let client;
+async function start() {
+    client = await pool.connect();
+}
+
 const TablesColumns = {
     accounts: ["id", "account_id", "compeny_name", "balance", "status", "descraption"],
     business_categories: ["business_id", "category_id"],

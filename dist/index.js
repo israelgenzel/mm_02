@@ -2,6 +2,7 @@ const express = require('express');
 const { scrape } = require('./scraper.js');
 const { CompanyTypes } = require('israeli-bank-scrapers');
 const  { initializeDb}= require("./initDb.js");
+const { insertNewTransactions } = require('./db_api.js');
 // const updateNotifier = require('update-notifier');
 // const pkg = require('./package.json');
 const app = express();
@@ -24,7 +25,7 @@ app.get('/scrape', async (req, res) => {
         }
         console.log('Scraping...');
         const data = await scrape(comtype, new Date('01-01-25')); // קריאה לפונקציה בסקריפט שלך
-        
+        insertNewTransactions(data);
         res.json({ message: "Scraping started for " + company });
     } catch (error) {
         res.status(500).json({ error: error.message });
