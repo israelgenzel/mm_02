@@ -57,7 +57,7 @@ CREATE TABLE IF NOT EXISTS public.category_mappings
 
 CREATE TABLE IF NOT EXISTS public.companies
 (
-    id integer NOT NULL DEFAULT nextval('company_info_id_seq'::regclass),
+    id serial NOT NULL ,
     name text COLLATE pg_catalog."default" NOT NULL,
     encrypted_username bytea,
     encrypted_password bytea,
