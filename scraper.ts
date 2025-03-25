@@ -3,7 +3,7 @@ import { CompanyTypes, createScraper, ScraperOptions, ScraperCredentials ,Scaper
 
 import path from 'path';
 import fs from 'fs';
-import { credentials } from "./config.ts"; // נתיב הייבוא לפי המיקום של `config.ts`
+import { credentials } from "./config"; // נתיב הייבוא לפי המיקום של `config.ts`
 import { setTimeout } from 'timers/promises';
 async function scrape(companyId:CompanyTypes,startDate : Date): Promise<ScaperScrapingResult | undefined> {
   

@@ -1,10 +1,10 @@
 import express from 'express';
 import { Request, Response } from 'express-serve-static-core';
-import { scrape } from './scraper.ts';
-import { insertNewTransactions } from './db_api.ts';
+import { scrape } from './scraper.js';
+import { insertNewTransactions } from './db_api.js';
 import { CompanyTypes, ScraperScrapingResult} from 'israeli-bank-scrapers';
 import updateNotifier from 'update-notifier';
-import pkg from './package.json';
+import pkg from './package.json' assert { type: "json" };
 
 
 
