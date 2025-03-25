@@ -41,7 +41,7 @@ CREATE TABLE IF NOT EXISTS public.businesses
 CREATE TABLE IF NOT EXISTS public.categories
 (
     id serial NOT NULL,
-    name character varying(50) COLLATE pg_catalog."default" NOT NULL,
+    name text COLLATE pg_catalog."default" NOT NULL,
     status text COLLATE pg_catalog."default" DEFAULT 'pending'::text,
     CONSTRAINT categories_pkey PRIMARY KEY (id),
     CONSTRAINT categories_name_key UNIQUE (name)
@@ -57,7 +57,7 @@ CREATE TABLE IF NOT EXISTS public.category_mappings
 
 CREATE TABLE IF NOT EXISTS public.companies
 (
-    id serial NOT NULL
+    id serial NOT NULL,
     name text COLLATE pg_catalog."default" NOT NULL,
     encrypted_username bytea,
     encrypted_password bytea,
