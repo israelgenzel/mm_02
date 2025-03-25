@@ -6,8 +6,10 @@ async function initializeDb() {
         // טוען את קובץ ה-SQL
         const schema = fs.readFileSync("schema.sql", "utf8");
         
+        const client = await pool.connect();
+        client.query(schema)
         // מריץ את ה-SQL במסד הנתונים
-        await pool.query(schema);
+        
         console.log("✅ Database schema initialized successfully!");
 
         // סוגר את החיבור
