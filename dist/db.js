@@ -10,10 +10,14 @@ const { Pool } = pg;
 // module.exports = { pool };
 
 
+const { Pool } = require('pg');
+
 const pool = new Pool({
-    connectionString: process.env.DATABASE_URL, // משתמשים ב-URL הפרטי מ-Railway
-    ssl: {
-        rejectUnauthorized: false, // נדרש בדרך כלל ל-Railway
-    }
+    user: process.env.PGUSER,
+    host: process.env.PGHOST,
+    database: process.env.PGDATABASE,
+    password: process.env.PGPASSWORD,
+    port: process.env.PGPORT
 });
-module.exports = { pool };
+
+module.exports = pool;
