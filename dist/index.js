@@ -11,22 +11,27 @@ app.get('/', (req, res) => {
 });
 app.get('/scrape', async (req, res) => {
     try {
+        let comtype;
+        const company = req.query.company; // מקבל את הפרמטר מה-URL
+
+        if (company === "hapoalim") {
+            comtype = CompanyTypes.hapoalim;
+        } else if (company === "visaCal") {
+            comtype = CompanyTypes.visaCal;
+        } else {
+            return res.status(400).json({ error: "Invalid company type" });
+        }
         console.log('Scraping...');
-        const data = await scrape(CompanyTypes.hapoalim, new Date('01-01-25')); // קריאה לפונקציה בסקריפט שלך
+        const data = await scrape(comtype, new Date('01-01-25')); // קריאה לפונקציה בסקריפט שלך
         console.log(data);
-        console.log('json');
-        if (data) {
-            // await insertNewTransactions(data); // קריאה לפונקציה שמכניסה את הנתונים לבסיס הנתונים
-            res.json(data);
-        }
-        else {
-            res.status(500).send('No data returned from scraping');
-        }
+        // כאן תוכל לקרוא לפונקציה שתריץ את הסקרייפר עם comtype
+
+        res.json({ message: "Scraping started for " + company });
+    } catch (error) {
+        res.status(500).json({ error: error.message });
     }
-    catch (error) {
-        console.error('Error while scraping', error);
-        res.status(500).send(`Error while scraping: ${error.message}`);
-    }
+    
+   
 });
 // שרת שמאזין על הפורט 3000
 app.listen(port, () => {
