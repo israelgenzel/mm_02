@@ -1,8 +1,8 @@
 const express = require('express');
 const { scrape } = require('./scraper.js');
 const { CompanyTypes } = require('israeli-bank-scrapers');
-const updateNotifier = require('update-notifier');
-const pkg = require('./package.json');
+// const updateNotifier = require('update-notifier');
+// const pkg = require('./package.json');
 const app = express();
 const port = 3000;
 // דף ברוך הבא
