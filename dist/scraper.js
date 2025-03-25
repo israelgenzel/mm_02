@@ -7,7 +7,7 @@ async function scrape(companyId, startDate) {
             companyId: companyId,
             startDate: startDate,
             combineInstallments: false,
-            showBrowser: true,
+            showBrowser: false,
             verbose: true,
             args: [
                 '--no-sandbox',
