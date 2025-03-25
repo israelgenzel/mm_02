@@ -9,6 +9,7 @@ async function scrape(companyId, startDate) {
             combineInstallments: false,
             showBrowser: true,
             verbose: true,
+            args: ['--no-sandbox', '--disable-setuid-sandbox'],
             //executablePath: "C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe",
             //userDataDir: "C:\\Users\\Israel\\AppData\\Local\\Google\\Chrome\\User Data\\israel",
             // coockiesPath: "./cookies.txt",
