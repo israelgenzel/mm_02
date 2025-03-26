@@ -6,6 +6,8 @@ const { insertNewTransactions,GetTable } = require('./db_api.js');
 // const updateNotifier = require('update-notifier');
 // const pkg = require('./package.json');
 const app = express();
+const cors = require("cors");
+app.use(cors());
 const port = 3000;
 // דף ברוך הבא
 app.get('/', (req, res) => {
@@ -51,7 +53,8 @@ app.get('/get_table', async (req,res)=>{
     
     table_name = req.query.table;
     if(table_name){
-      result =GetTable(table_name);
+      result = await GetTable(table_name);
+      console.log(result);
       res.json(result);   
     }
 });

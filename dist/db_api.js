@@ -67,8 +67,10 @@ function getColumns(table, selectedColumns, excludedColumns) {
 
 async function GetTable(table_name){
     try {
+        console.log(table_name);
         const result = await pool.query(`SELECT * FROM ${table_name}`);
-        return json(result.rows);
+        //console.log(result);
+        return result.rows;
       } catch (error) {
         console.error("Error fetching table data:", error);
         return  "error: Failed to fetch data" ;
