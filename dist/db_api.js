@@ -3,6 +3,7 @@ let client;
 async function start() {
     client = await pool.connect();
 }
+start();
 
 const TablesColumns = {
     accounts: ["id", "account_id", "compeny_name", "balance", "status", "descraption"],
