@@ -2,7 +2,7 @@ const express = require('express');
 const { scrape } = require('./scraper.js');
 const { CompanyTypes } = require('israeli-bank-scrapers');
 const  { initializeDb}= require("./initDb.js");
-const { insertNewTransactions } = require('./db_api.js');
+const { insertNewTransactions,GetTable } = require('./db_api.js');
 // const updateNotifier = require('update-notifier');
 // const pkg = require('./package.json');
 const app = express();
@@ -45,6 +45,15 @@ app.get('/init' ,async (req,res)=>{
     //for
      
     
+});
+
+app.get('/get_table', async (req,res)=>{
+    
+    table_name = req.query.table;
+    if(table_name){
+      result =GetTable(table_name);
+      res.json(result);   
+    }
 });
 // שרת שמאזין על הפורט 3000
 app.listen(port, () => {

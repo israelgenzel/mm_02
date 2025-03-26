@@ -63,6 +63,17 @@ function getColumns(table, selectedColumns, excludedColumns) {
     }
     return columns;
 }
+
+
+async function GetTable(table_name){
+    try {
+        const result = await pool.query(`SELECT * FROM ${table_name}`);
+        return json(result.rows);
+      } catch (error) {
+        console.error("Error fetching table data:", error);
+        return  "error: Failed to fetch data" ;
+      }
+}
 // פונקציה להכנסת נתונים לטבלה
 // הפונקציה מקבלת את הקליינט, שם הטבלה, ערכים להכנסה, עמודות נבחרות להכנסה ועמודות שלא יכנסו
 async function InsertRows(table, values, // ערכים בפורמט קי ואליו
@@ -320,4 +331,4 @@ async function insertNewTransactions(scrapeResult) {
         client.release();
     }
 }
-module.exports = { insertNewTransactions, InsertRows, DeleteRows, updateRows };
+module.exports = { GetTable,insertNewTransactions, InsertRows, DeleteRows, updateRows };
