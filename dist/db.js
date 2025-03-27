@@ -3,7 +3,7 @@ const { Pool } = pg;
 const isPro = process.env.IS_PRO;
 let pool ;
 console.log(process.env.IS_PRO);
-if (isPro) {
+if (isPro==false) {
   console.log("Running locally");
   pool = new Pool({
     user: 'postgres',
