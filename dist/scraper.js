@@ -40,6 +40,7 @@ async function scrape(companyId, startDate) {
         if (scrapeResult.success) {
             scrapeResult.accounts?.forEach((account) => {
                 console.log(`found ${account.txns.length} transactions for account number ${account.accountNumber}`);
+                console.log(account.balance);
             });
             return scrapeResult;
         }
